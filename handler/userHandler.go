@@ -42,3 +42,30 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *userHandler) Login(c *gin.Context) {
+	var input user.InputLoginUser
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		errors := helper.ErrorValidation(err)
+
+		errMsg := gin.H{"errors": errors}
+		response := helper.APIResponse("Login failed", http.StatusUnprocessableEntity, "failed", errMsg)
+
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	users, err := h.userService.Login(input)
+	if err != nil {
+		response := helper.APIResponse("Login failed", http.StatusInternalServerError, "failed", err.Error())
+
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	userFormatter := user.UserFormatter(users, "tokentoken")
+
+	response := helper.APIResponse("Login success", http.StatusOK, "success", userFormatter)
+	c.JSON(http.StatusOK, response)
+}
