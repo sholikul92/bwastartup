@@ -9,6 +9,8 @@ import (
 type Service interface {
 	Register(input InputRegistUser) (*Users, error)
 	Login(input InputLoginUser) (Users, error)
+	IsEmailAvailable(email CheckedEmailInput) (bool, error)
+	SaveAvatar(ID int, fileLocation string) (Users, error)
 }
 
 type service struct {
@@ -39,7 +41,7 @@ func (s *service) Register(input InputRegistUser) (*Users, error) {
 		return nil, err
 	}
 
-	return &users, nil
+	return users, nil
 }
 
 func (s *service) Login(input InputLoginUser) (Users, error) {
@@ -61,4 +63,38 @@ func (s *service) Login(input InputLoginUser) (Users, error) {
 	}
 
 	return user, nil
+}
+
+func (s *service) IsEmailAvailable(email CheckedEmailInput) (bool, error) {
+	emailInput := email.Email
+
+	user, err := s.Repo.FindByEmail(emailInput)
+	if err != nil {
+		return false, err
+	}
+
+	if user.ID == 0 {
+		return true, err
+	}
+
+	return false, nil
+}
+
+func (s *service) SaveAvatar(ID int, fileLocation string) (Users, error) {
+	// Dapatkan user berdasarkan id
+	user, err := s.Repo.FindByID(ID)
+	if err != nil {
+		return user, err
+	}
+
+	// Update atribut avatar file name
+	user.AvatarFileName = fileLocation
+
+	// save atribut yang sudah diupdate
+	updatedUser, err := s.Repo.Update(user)
+	if err != nil {
+		return updatedUser, err
+	}
+
+	return updatedUser, nil
 }
