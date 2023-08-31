@@ -135,7 +135,8 @@ func (h *userHandler) UpdateAvatarImage(c *gin.Context) {
 		return
 	}
 
-	id := 1
+	currentUser := c.MustGet("currentUser").(user.Users)
+	id := currentUser.ID
 	path := fmt.Sprintf("images/%d-%s", id, file.Filename)
 
 	// save file dari input form
